@@ -18,7 +18,7 @@ with open("sdatadate.csv","a") as outfile:
     #opening up a json file to save the data
     file = open("datajson.json","w")
 
-    for beg in pd.date_range('2017-09-01', '2017-12-31', freq='MS'):
+    for beg in pd.date_range('2017-09-01', endDate, freq='MS'):
     #    count = count + 1
         
         response = requests.get(api_base+beg.strftime("%Y-%m-%d")+'..'+(beg + MonthEnd(1)).strftime("%Y-%m-%d"))
@@ -44,7 +44,7 @@ with open("sdatadate.csv","a") as outfile:
             forks = item['forks']           #Numbers of forks
             outfile.write("{},{},{},{},{},{},{},{},{},{},{},{}\n".format(id,node_id,name,full_name,url,commits_url,downloads_url,issues_url,pulls_url,created_at,language,forks))#,description'''
         print(beg.strftime("%Y-%m-%d"), (beg + MonthEnd(1)).strftime("%Y-%m-%d"))
-       # time.sleep(60)
+        time.sleep(60)
    # print(count)
 
 
