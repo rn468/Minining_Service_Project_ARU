@@ -1,3 +1,5 @@
+import random
+from MySQLdb import MySQLError
 import requests 
 import mysql.connector
 import pandas as pd
@@ -6,11 +8,12 @@ from datetime import datetime
 import time
 #import urllib.request
 import json
+import sqlite3
 
 
 
 #base api which will be used to call
-api_base = "https://api.github.com/search/repositories?q=Aarch64:created:"
+#api_base = "https://api.github.com/search/repositories?q=Aarch64:created:"
 endDate = datetime.today().strftime('%Y-%m-%d')
 
 
@@ -34,33 +37,75 @@ except MySQLError as er:
 
 
 
-#check_keyword('Trial')
-
+#this function will check if the keyword is already present in table 
+#if the keyword is present then it will return the status and 
+#if the keyword is not present in table then the keyword will be inserted and a new id will be generated along with the timestamp
 def check_keyword(ckeyword):
-    if connected:
+    try:
         cursor = con.cursor()
-        #check_query = "SELECT keyword_id FROM searched_keyword WHERE keyword_title = '"+ckeyword+"'"
-        #for kw in (ckeyword):
-        check_query = "SELECT keyword_id FROM searched_keyword WHERE keyword_title = '"+ckeyword+"'"
-        cursor.execute(check_query)
-        #cursor.execute("SELECT keyword_id FROM searched_keyword WHERE keyword_title = 'Trial3'")
-        result = cursor.fetchone() is None
-        #is the returned result is FALSE then the keyword is PRESENT and if the result is TRUE then the keyword is ABSENT 
-        print (result)
-    return result
-
-ckww = 'Trial'
-result = check_keyword(ckww)
-if (result == False):
-    print("Present")
-else:
-    print("Not Present")
+        if connected:
+            #query to check if the keyword is already present,passing keyword as parameter
+            check_query = "SELECT keyword_id FROM searched_keyword WHERE keyword_title = '"+ckeyword+"'"
+            cursor.execute(check_query)
+            result = cursor.fetchone() is None
+            #if the returned result is FALSE then the keyword is PRESENT and if the result is TRUE then the keyword is ABSENT 
+            #print (result)
+            if result:
+                loop = True
+                while loop == True:
+                    rand_id = random.randint(10000000, 99999999)#generate random number (8 digits)
+                    try:
+                        cursor.execute('SELECT * FROM searched_keyword WHERE keyword_id = ?',(rand_id,))#select the row in the users table where id == the rand_id variable
+                        r_id = cursor.fetchone()[0]#r_id = the first column from that row ## this is just here to throw the error
+                        print (r_id)
+                    except:
+                        #cursor.execute('INSERT INTO users (id, username, password1) VALUES (?, ?, ?)',(rand_id, usernamex, password1x))#make a new row, and put in ID, username and password1 in their respective places
+                        insert_keyword_query = "INSERT INTO searched_keyword(keyword_id,keyword_title,last_updated_date) VALUES(%s,%s,%s)"
+                        value = (rand_id,ckeyword,endDate)
+                        cursor.execute(insert_keyword_query,value)
+                        con.commit()
+                        loop = False#break the loop
     
+        # The below code is performing two SQL queries.
+        last_date_query = "SELECT last_updated_date FROM searched_keyword WHERE keyword_title = '"+ckeyword+"'"
+        keyword_query = "SELECT keyword_id FROM searched_keyword WHERE keyword_title = '"+ckeyword+"'"
+        # The below code is executing a SQL query using a cursor object. The specific query being
+        # executed is stored in the variable `last_date_query`.
+        cursor.execute(last_date_query)
+        # The below code is fetching the value of the first column from the result of a database query
+        # using the `fetchone()` method and assigning it to the variable `last_date`.
+        last_date = cursor.fetchone()[0]
+        '''for date in last_date:
+            last_date = date[0]'''
+        
+        # The below code is executing a SQL query using a cursor object. It is fetching the first row
+        # of the result set and retrieving the value at index 0. This value is then assigned to the
+        # variable keyword_id.
+        cursor.execute(keyword_query)
+        keyword_id = cursor.fetchone()[0]
+        print (last_date)
+        print(keyword_id)
+        # The below code is defining a Python function that returns two variables, `last_date` and
+        # `keyword_id`. The function does not have a name, so it cannot be called directly.
+        return last_date,keyword_id
+    finally:
+        con.close()
+       
 
-##api for bellow function would be ("https://api.github.com/search/repositories?q=         :created:";)
+
+
+#ckww = 'Trial3'
+#result = check_keyword(ckww)    
+#if (result == False):
+#    print("Present")
+#else:
+#    print("Not Present")
+
+
+#incomplete
 #in stage 1 collection the data will be ready available data will be collected and stored in data base
 #will return the last date and if the last date is not same as current date then it means that all the data 
-def stage1_collection(keyword):
+def stage1_collection(keyword): 
     if connected:
         api_base2="https://api.github.com/search/repositories?q="
         cursor = con.cursor()
@@ -109,6 +154,20 @@ def stage1_collection(keyword):
 #this stage 1 collection with 2 parameters will be called when the stage 1 data is incomplete and the remaining data is collected using these 2 parameters 
 # 1. the keyword and 2.last date until which data was collected
 # it will return the last date to chech if data is collected till current date. 
+    """
+    The function `stage1_collection1` collects data from the GitHub API based on a given keyword and
+    start date, and inserts the collected data into a database, returning the last date for which data
+    was collected.
+    
+    :param keyword: The keyword parameter is used to specify the search term for the GitHub
+    repositories. It is the term that you want to search for in the repository names, descriptions, etc
+    :param startDate: The `startDate` parameter is the starting date from which you want to collect
+    data. It is used to specify the beginning of the date range for searching repositories on GitHub
+    :return: The function will return the last date until which data has been collected and inserted
+    into the database.
+    """
+
+
 def stage1_collection1(keyword,startDate):
     if connected:
         api_base2="https://api.github.com/search/repositories?q="
@@ -146,6 +205,27 @@ def stage1_collection1(keyword,startDate):
         con.close()
         print ('Data inserted into database unitil '+last_date)
     return last_date
+
+
+
+#This function is responsible for collecting additional information about repositories from Github API
+def stage2_collection(keywordID):
+    cursor = con.cursor()
+    if connected:
+        fetch_url_query = ""
+
+
+#This function will be responsible for controlling all the functions and also for the user flow
+def main():
+      #keyword : will store the keyword we are searching for 
+      #lastdate : will store the last 
+      #status  : will store the completion status ,if the data collection was completed or not 
+      keyword = input("Please insert the keyword : ")
+      lastdate,keywordID = check_keyword(keyword)
+      print (lastdate)
+      print (keywordID)
+
+main()
 
 
 '''
