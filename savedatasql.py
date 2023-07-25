@@ -6,7 +6,7 @@ import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 from datetime import datetime
 import time
-#import urllib.request
+import urllib.request
 import json
 import sqlite3
 
@@ -89,8 +89,8 @@ def check_keyword(ckeyword):
         # `keyword_id`. The function does not have a name, so it cannot be called directly.
         return last_date,keyword_id
     finally:
-        con.close()
-       
+        print ("Check Keyword")
+
 
 
 
@@ -105,46 +105,60 @@ def check_keyword(ckeyword):
 #incomplete
 #in stage 1 collection the data will be ready available data will be collected and stored in data base
 #will return the last date and if the last date is not same as current date then it means that all the data 
-def stage1_collection(keyword): 
-    if connected:
-        api_base2="https://api.github.com/search/repositories?q="
-        cursor = con.cursor()
-        for beg in pd.date_range('2020-01-01',endDate,freq='MS'):
-            response = requests.get(api_base2+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"))
-            for item in response.json()['items']:
-                keyword_id = 1001
-                id = item['id']                 #repository id 
-                node_id = item['node_id']       #repository node id
-                name = item['name']             #repostory name 
-                full_name = item['full_name']   #owner name and repository name 
-                description = item['description']
-                url = item['url']               #repository url
-                commits_url = item['commits_url'] # all commits url
-                downloads_url = item['downloads_url'] #all downloads url
-                issues_url = item['issues_url'] #all issues URL
-                pulls_url = item['pulls_url']   #All the pulls url
+def stage1_collection(keyword,keyword_id): 
+    last_date = '2009-04-01'
+    try:
+        if connected:
+            api_base="https://api.github.com/search/repositories?q="
+            cursor = con.cursor()
+            for beg in pd.date_range('2022-09-01',endDate,freq='MS'):
+                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"))
+                last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
+                for item in response.json()['items']:
+                    id = item['id']                 #repository id 
+                    node_id = item['node_id']       #repository node id
+                    name = item['name']             #repostory name 
+                    full_name = item['full_name']   #owner name and repository name 
+                    description = item['description']
+                    url = item['url']               #repository url
+                    commits_url = item['commits_url'] # all commits url
+                    print (url+'/commits')
+                    commit_count_response = requests.get(url+'/commits')
+                    commit_count_response = json.loads(commit_count_response.text)
+                    commit_count_response = json.dumps(commit_count_response) 
+                    commit_count = commit_count_response.count('"commit":') #counts number of commits
+                    print ('Number of commits : ',commit_count)
+                    downloads_url = item['downloads_url'] #all downloads url
+                    issues_url = item['issues_url'] #all issues URL
+                    pulls_url = item['pulls_url']   #All the pulls url
 
-                #repo_url = 
-                #languages_url = 
-                #comments_url = 
+                    #repo_url = 
+                    #languages_url = 
+                    #comments_url = 
 
-                created_at = item['created_at'] #stores the created date
-                language = item['language']     #Primary language used in repository
-                if (language == ' '):
-                    language = 'not available'    
-                forks = item['forks']           #Numbers of forks
-                repo_size = item['size']
-                watchers = item['watchers']
-                query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers)
-                cursor.execute(query,value)
-                con.commit()
-                print("inserted")
-            last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
-            time.sleep(60)
-        con.close()
+                    created_at = item['created_at'] #stores the created date
+                    language = item['language']     #Primary language used in repository
+                    null = None
+                    if (language == null):
+                        language = "Not Available"       
+                    forks = item['forks']           #Numbers of forks
+                    repo_size = item['size']
+                    watchers = item['watchers']
+                    print (name) #remove later
+                    query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks_count,commits_count) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                    value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks,commit_count)
+                    cursor.execute(query,value)
+                    con.commit()
+                    time.sleep(30)
+                last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
+                time.sleep(60)
         print ('Data inserted into database unitil '+last_date)
-    return last_date
+        return last_date
+    except KeyboardInterrupt:
+        print ("The collection process is been interupted and data is collected till : " +last_date)
+        print ("plesae continue to complete the collection process")
+        return last_date
+
 
 #DRY Running the function 
 #kww = 'Xampp'
@@ -169,68 +183,106 @@ def stage1_collection(keyword):
 
 
 def stage1_collection1(keyword,startDate):
-    if connected:
-        api_base2="https://api.github.com/search/repositories?q="
-        cursor = con.cursor()
-        for beg in pd.date_range(startDate,endDate,freq='MS'):
-            response = requests.get(api_base2+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"))
-            for item in response.json()['items']:
-                keyword_id = 1000
-                id = item['id']                 #repository id 
-                node_id = item['node_id']       #repository node id
-                name = item['name']             #repostory name 
-                full_name = item['full_name']   #owner name and repository name 
-                description = item['description']
-                url = item['url']               #repository url
-                commits_url = item['commits_url'] # all commits url
-                downloads_url = item['downloads_url'] #all downloads url
-                issues_url = item['issues_url'] #all issues URL
-                pulls_url = item['pulls_url']   #All the pulls url
+    
+    try:
+        last_date = startDate
+        if connected:
+            api_base="https://api.github.com/search/repositories?q="
+            cursor = con.cursor()
+            for beg in pd.date_range(startDate,endDate,freq='MS'):
+                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"))
+                for item in response.json()['items']:
+                    keyword_id = 1000
+                    id = item['id']                 #repository id 
+                    node_id = item['node_id']       #repository node id
+                    name = item['name']             #repostory name 
+                    full_name = item['full_name']   #owner name and repository name 
+                    description = item['description']
+                    url = item['url']               #repository url
+                    commits_url = item['commits_url'] # all commits url
+                    downloads_url = item['downloads_url'] #all downloads url
+                    issues_url = item['issues_url'] #all issues URL
+                    pulls_url = item['pulls_url']   #All the pulls url
 
-                #repo_url = 
-                #languages_url = 
-                #comments_url = 
+                    #repo_url = 
+                    #languages_url = 
+                    #comments_url = 
 
-                created_at = item['created_at'] #stores the created date
-                language = item['language']     #Primary language used in repository
-                forks = item['forks']           #Numbers of forks
-                repo_size = item['size']
-                watchers = item['watchers']
-                query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers)
-                cursor.execute(query,value)
-                con.commit()
-            last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
-            time.sleep(60)
-        con.close()
+                    created_at = item['created_at'] #stores the created date
+                    language = item['language']     #Primary language used in repository
+                    forks = item['forks']           #Numbers of forks
+                    repo_size = item['size']
+                    watchers = item['watchers']
+                    query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                    value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers)
+                    cursor.execute(query,value)
+                    con.commit()
+                last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
+                time.sleep(60)
         print ('Data inserted into database unitil '+last_date)
-    return last_date
+        return last_date
+    except KeyboardInterrupt:
+        print ("The collection process is been interupted and data is collected till : " +last_date)
+        print ("plesae continue to complete the collection process")
+        return last_date
 
 
-
-#This function is responsible for collecting additional information about repositories from Github API
-def stage2_collection(keywordID):
-    cursor = con.cursor()
-    if connected:
-        fetch_url_query = ""
-
+def check_status(keyword_id):
+    try:
+        cursor = con.cursor()
+        query = "SELECT completion_status FROM searched_keyword WHERE keyword_id = '"+keyword_id+"'"
+        cursor.execute(query)
+        print("1")
+        result = cursor.fetchall()[0]
+        print(result)
+        if (result != 0):
+            print ("completed")
+        else:
+            print ("Incomplete")
+    except:
+        print ("error ")
 
 #This function will be responsible for controlling all the functions and also for the user flow
-def main():
+def main():  
       #keyword : will store the keyword we are searching for 
-      #lastdate : will store the last 
+      #lastdate : will store the last
+      #keywordID : will store the keyword id 
       #status  : will store the completion status ,if the data collection was completed or not 
       keyword = input("Please insert the keyword : ")
       lastdate,keywordID = check_keyword(keyword)
-      print (lastdate)
       print (keywordID)
+
+      status = check_status(keywordID)
+      print (status)
+      
+      '''if ((endDate - lastdate).days >> 7 ):
+           
+
+
+
+
+
+      returnedLastDate = stage1_collection(keyword,keywordID)
+      if (returnedLastDate != datetime.today().strftime('%Y-%m-%d')):
+          cursor = con.cursor()
+          print ('Data collection process is incomplete')
+          status_update_query = "UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = "+keywordID
+          cursor.execute(status_update_query)
+          con.commit()
+      else:
+          print (returnedLastDate)
+    
+          ''' 
+
+      con.close()
+
 
 main()
 
 
 '''
 
-if connected:
+if connected:w
     #creating a cursor using cursor object cursor()
     cursor = con.cursor()
     #loop to slice the data set by the means of date ,slice data with one month frequency 'MS'
@@ -265,7 +317,6 @@ if connected:
             con.commit()
         last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
         time.sleep(60)
-    con.close()
     print ('Data inserted into database unitil '+last_date)
 '''
 '''    
