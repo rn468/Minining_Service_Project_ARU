@@ -28,6 +28,17 @@ except MySQLError as er:
     print ('Error connecting to database '+er)
 
 
+def optmiseSpeed(keyword,startdate):#keyword,startdate
+    response = requests.get(api_base+keyword+':created:'+startdate+'..'+(beg+Week()).strftime("%Y-%m-%d"),auth=(username,token))
+    time.sleep(6)
+    response_count = response.json()['total_count']
+    print(startdate+'-'+(beg+Week()).strftime("%Y-%m-%d"))
+    if(response_count<=30):
+        return response_count,response,'W'
+    elif(response_count>30):
+        return response_count,response,'D'
+#returns response_count,json response and weekly or daily bit
+
 def check_keyword(ckeyword):
     try:
         cursor = con.cursor()
@@ -63,7 +74,7 @@ def check_keyword(ckeyword):
         return ckeyword,last_date,keyword_id,result
     finally:
         print ("Check Keyword")
-
+#Returns keyword ,last date ,keyword ID and result= keyword EXISTED OR NOT
 
 
 
@@ -114,17 +125,18 @@ def stage1(keyword,keyword_id):
                 last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
         print ('Data inserted into database unitil '+endDate)
         print ('Data collection process is Completed')
-        status_update_query = "UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = ?"#+keyword_id
+        #status_update_query = "UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = ?"#+keyword_id
         cursor.execute("UPDATE searched_keyword SET completion_status=1, last_data_fetched_at=%s WHERE keyword_id = %s",(endDate,keyword_id,))
         con.commit()
         return last_date
     except KeyboardInterrupt:
         print ("The collection process is been interupted and data is collected till : " +last_date)
         print ("plesae continue to complete the collection process")
-        date_update_query = "UPDATE searched_keyword SET completion_status=1,last_data_fetched_at=%s WHERE keyword_id = %s"
+        date_update_query = "UPDATE searched_keyword SET completion_status=0,last_data_fetched_at=%s WHERE keyword_id = %s"
         cursor.execute(date_update_query,(last_date,keyword_id,))
         con.commit()
         return last_date
+#Returns last date and updates in table if the collection process is complete or not 1 = Completed ,0 = incolplete
     
 
 def stage2(keyword,keyword_id,startDate):
@@ -171,17 +183,18 @@ def stage2(keyword,keyword_id,startDate):
                 last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
         print ('Data inserted into database unitil '+endDate)
         print ('Data collection process is Completed')
-        status_update_query = "UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = ?"#+keyword_id
+        status_update_query = "UPDATE searched_keyword SET completion_status=1 WHERE keyword_id = ?"#+keyword_id
         cursor.execute("UPDATE searched_keyword SET completion_status=1, last_data_fetched_at=%s WHERE keyword_id = %s",(endDate,keyword_id,))
         con.commit()
         return last_date
     except KeyboardInterrupt:
         print ("The collection process is been interupted and data is collected till : " +last_date)
         print ("plesae continue to complete the collection process")
-        date_update_query = "UPDATE searched_keyword SET completion_status=1,last_data_fetched_at=%s WHERE keyword_id = %s"
+        date_update_query = "UPDATE searched_keyword SET completion_status=0,last_data_fetched_at=%s WHERE keyword_id = %s"
         cursor.execute(date_update_query,(last_date,keyword_id,))
         con.commit()
         return last_date
+#Returns last date and updates in table if the collection process is complete or not 1 = Completed ,0 = incolplete
     
 
 def check_completion_status(id):
@@ -195,28 +208,17 @@ def check_completion_status(id):
             print(result)
     finally:
         return result
-    
+#Returns result and if last collection cycle was completed  1 = completed ,0 = inncomplete
 
-def optmiseSpeed(keyword,startdate):#keyword,startdate
-    response = requests.get(api_base+keyword+':created:'+startdate+'..'+(beg+Week()).strftime("%Y-%m-%d"),auth=(username,token))
-    time.sleep(6)
-    response_count = response.json()['total_count']
-    print(startdate+'-'+(beg+Week()).strftime("%Y-%m-%d"))
-    if(response_count<=30):
-        return response_count,response,'W'
-    elif(response_count>30):
-        return response_count,response,'D'
 
 
 
 def main():  
       
-      #keywordID : will store the keyword id 
-      #status  : will store the completion status ,if the data collection was completed or not 
       keyword = input("Please insert the keyword : ")
       
       keyword,lastdate,keywordID,result = check_keyword(keyword) #result will tell if it is a new keyword or existing one 
-            
+    
       if (result == 0):
           completion_status = check_completion_status(keywordID)
           if (completion_status != 0):
