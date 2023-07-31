@@ -6,7 +6,7 @@ import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 from datetime import datetime
 import time
-import urllib.request
+#import urllib.request
 import json
 import sqlite3
 
@@ -15,7 +15,8 @@ import sqlite3
 #base api which will be used to call
 #api_base = "https://api.github.com/search/repositories?q=Aarch64:created:"
 endDate = datetime.today().strftime('%Y-%m-%d')
-
+token = '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'
+username = 'rn468'
 
 
 #By default the connected is initialized as false stating its not-connected
@@ -44,6 +45,7 @@ def check_keyword(ckeyword):
     try:
         cursor = con.cursor()
         if connected:
+            ckeyword = ckeyword.upper()
             #query to check if the keyword is already present,passing keyword as parameter
             check_query = "SELECT keyword_id FROM searched_keyword WHERE keyword_title = '"+ckeyword+"'"
             cursor.execute(check_query)
@@ -83,36 +85,27 @@ def check_keyword(ckeyword):
         # variable keyword_id.
         cursor.execute(keyword_query)
         keyword_id = cursor.fetchone()[0]
-        print (last_date)
-        print(keyword_id)
+    
         # The below code is defining a Python function that returns two variables, `last_date` and
         # `keyword_id`. The function does not have a name, so it cannot be called directly.
-        return last_date,keyword_id
+        print ('complete')
+        return ckeyword,last_date,keyword_id,result
     finally:
         print ("Check Keyword")
 
 
 
-
-#ckww = 'Trial3'
-#result = check_keyword(ckww)    
-#if (result == False):
-#    print("Present")
-#else:
-#    print("Not Present")
-
-
 #incomplete
 #in stage 1 collection the data will be ready available data will be collected and stored in data base
 #will return the last date and if the last date is not same as current date then it means that all the data 
-def stage1_collection(keyword,keyword_id): 
+def stage1(keyword,keyword_id): 
     last_date = '2009-04-01'
     try:
         if connected:
             api_base="https://api.github.com/search/repositories?q="
             cursor = con.cursor()
-            for beg in pd.date_range('2022-09-01',endDate,freq='MS'):
-                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"))
+            for beg in pd.date_range('2023-07-01',endDate,freq='MS'):
+                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"),auth=(username,token))
                 last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
                 for item in response.json()['items']:
                     id = item['id']                 #repository id 
@@ -149,21 +142,22 @@ def stage1_collection(keyword,keyword_id):
                     value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks,commit_count)
                     cursor.execute(query,value)
                     con.commit()
-                    time.sleep(30)
+                    time.sleep(60)
                 last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
-                time.sleep(60)
-        print ('Data inserted into database unitil '+last_date)
+        print ('Data inserted into database unitil '+endDate)
+        print ('Data collection process is Completed')
+        status_update_query = "UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = ?"#+keyword_id
+        #listt = keyword_id
+        cursor.execute("UPDATE searched_keyword SET completion_status=1, last_data_fetched_at=%s WHERE keyword_id = %s",(endDate,keyword_id,))
+        con.commit()
         return last_date
     except KeyboardInterrupt:
         print ("The collection process is been interupted and data is collected till : " +last_date)
         print ("plesae continue to complete the collection process")
+        date_update_query = "UPDATE searched_keyword SET completion_status=1,last_data_fetched_at=%s WHERE keyword_id = %s"
+        cursor.execute(date_update_query,(last_date,keyword_id,))
+        con.commit()
         return last_date
-
-
-#DRY Running the function 
-#kww = 'Xampp'
-#stage1_collection(kww)
-
 
 #this stage 1 collection with 2 parameters will be called when the stage 1 data is incomplete and the remaining data is collected using these 2 parameters 
 # 1. the keyword and 2.last date until which data was collected
@@ -182,17 +176,17 @@ def stage1_collection(keyword,keyword_id):
     """
 
 
-def stage1_collection1(keyword,startDate):
-    
+def stage2(keyword,keyword_id,startDate):
+    last_date = '2009-04-01'
     try:
-        last_date = startDate
         if connected:
             api_base="https://api.github.com/search/repositories?q="
             cursor = con.cursor()
+            startDate = '2015-06-01'
             for beg in pd.date_range(startDate,endDate,freq='MS'):
-                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"))
+                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"),auth=(username,token))
+                last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
                 for item in response.json()['items']:
-                    keyword_id = 1000
                     id = item['id']                 #repository id 
                     node_id = item['node_id']       #repository node id
                     name = item['name']             #repostory name 
@@ -200,6 +194,11 @@ def stage1_collection1(keyword,startDate):
                     description = item['description']
                     url = item['url']               #repository url
                     commits_url = item['commits_url'] # all commits url
+                    commit_count_response = requests.get(url+'/commits')
+                    commit_count_response = json.loads(commit_count_response.text)
+                    commit_count_response = json.dumps(commit_count_response) 
+                    commit_count = commit_count_response.count('"commit":') #counts number of commits
+
                     downloads_url = item['downloads_url'] #all downloads url
                     issues_url = item['issues_url'] #all issues URL
                     pulls_url = item['pulls_url']   #All the pulls url
@@ -210,16 +209,20 @@ def stage1_collection1(keyword,startDate):
 
                     created_at = item['created_at'] #stores the created date
                     language = item['language']     #Primary language used in repository
+                    null = None
+                    if (language == null):
+                        language = "Not Available"
                     forks = item['forks']           #Numbers of forks
                     repo_size = item['size']
                     watchers = item['watchers']
-                    query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                    value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers)
+                    query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks_count,commits_count) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                    value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks,commit_count)
                     cursor.execute(query,value)
                     con.commit()
+                    time.sleep(60)
                 last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
-                time.sleep(60)
         print ('Data inserted into database unitil '+last_date)
+
         return last_date
     except KeyboardInterrupt:
         print ("The collection process is been interupted and data is collected till : " +last_date)
@@ -227,20 +230,17 @@ def stage1_collection1(keyword,startDate):
         return last_date
 
 
-def check_status(keyword_id):
+def check_completion_status(id):
     try:
         cursor = con.cursor()
-        query = "SELECT completion_status FROM searched_keyword WHERE keyword_id = '"+keyword_id+"'"
-        cursor.execute(query)
-        print("1")
-        result = cursor.fetchall()[0]
-        print(result)
-        if (result != 0):
-            print ("completed")
-        else:
-            print ("Incomplete")
-    except:
-        print ("error ")
+        if connected:
+            id = str(id)
+            query1 = "SELECT completion_status FROM searched_keyword WHERE keyword_id = "+id
+            cursor.execute(query1)
+            result = cursor.fetchone()[0]
+            print(result)
+    finally:
+        return result
 
 #This function will be responsible for controlling all the functions and also for the user flow
 def main():  
@@ -249,11 +249,27 @@ def main():
       #keywordID : will store the keyword id 
       #status  : will store the completion status ,if the data collection was completed or not 
       keyword = input("Please insert the keyword : ")
-      lastdate,keywordID = check_keyword(keyword)
-      print (keywordID)
 
-      status = check_status(keywordID)
-      print (status)
+      keyword,lastdate,keywordID,result = check_keyword(keyword) #result will tell if it is a new keyword or existing one 
+      
+              
+      if (result == 0):
+          completion_status = check_completion_status(keywordID)
+          if (completion_status != 0):
+              print ("call")
+          else:
+              lastdate = stage1(keyword,keywordID)
+      
+      #lastdate = stage1(keyword,keywordID)
+
+      #
+      print (lastdate)
+      
+      #lastdate = stage2(keyword,keywordID,lastdate)
+      #completionStatus = check_completion_status(keywordID)
+      
+
+      #print (status)
       
       '''if ((endDate - lastdate).days >> 7 ):
            
@@ -279,6 +295,76 @@ def main():
 
 main()
 
+
+def stage3trial(keyword,keyword_id): 
+    last_date = '2009-04-01'
+    try:
+        if connected:
+            api_base="https://api.github.com/search/repositories?q="
+            cursor = con.cursor()
+            for beg in pd.date_range('2023-07-01',endDate,freq='MS'):
+                response = requests.get(api_base+keyword+':created:'+beg.strftime("%Y-%m-%d")+'..'+(beg+MonthEnd(1)).strftime("%Y-%m-%d"),auth=(username,token))
+                last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
+                for item in response.json()['items']:
+                    id = item['id']                 #repository id 
+                    node_id = item['node_id']       #repository node id
+                    name = item['name']             #repostory name 
+                    full_name = item['full_name']   #owner name and repository name 
+                    description = item['description']
+                    url = item['url']               #repository url
+                    commits_url = item['commits_url'] # all commits url
+                    print (url+'/commits')
+                    commit_count_response = requests.get(url+'/commits')
+                    commit_count_response = json.loads(commit_count_response.text)
+                    commit_count_response = json.dumps(commit_count_response) 
+                    commit_count = commit_count_response.count('"commit":') #counts number of commits
+                    print ('Number of commits : ',commit_count)
+                    downloads_url = item['downloads_url'] #all downloads url
+                    issues_url = item['issues_url'] #all issues URL
+                    pulls_url = item['pulls_url']   #All the pulls url
+
+                    #repo_url = 
+                    #languages_url = 
+                    #comments_url = 
+
+                    created_at = item['created_at'] #stores the created date
+                    language = item['language']     #Primary language used in repository
+                    null = None
+                    if (language == null):
+                        language = "Not Available"       
+                    forks = item['forks']           #Numbers of forks
+                    repo_size = item['size']
+                    watchers = item['watchers']
+                    print (name) #remove later
+                    query = "INSERT INTO keyword_search_data(keyword_id,id,node_id,name,full_name,description,repo_url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks_count,commits_count) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                    value = (keyword_id,id,node_id,name,full_name,description,url,commits_url,downloads_url,pulls_url,created_at,repo_size,language,watchers,forks,commit_count)
+                    cursor.execute(query,value)
+                    con.commit()
+                    time.sleep(60)
+                last_date = (beg + MonthEnd(1)).strftime("%Y-%m-%d")
+        print ('Data inserted into database unitil '+last_date)
+        print ('Data collection process is Completed')
+        status_update_query = "UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = ?"#+keyword_id
+        #listt = keyword_id
+        cursor.execute("UPDATE searched_keyword SET completion_status=0 WHERE keyword_id = ?",(keyword_id,))
+        con.commit()
+        return last_date
+    except KeyboardInterrupt:
+        print ("The collection process is been interupted and data is collected till : " +last_date)
+        print ("plesae continue to complete the collection process")
+        date_update_query = "UPDATE searched_keyword SET completion_status=1,last_data_fetched_at="+last_date+" WHERE keyword_id = "+keyword_id
+        cursor.execute(date_update_query)
+        con.commit()
+        return last_date
+
+
+
+'''
+              print ('Data collection process is incomplete')
+              status_update_query = "UPDATE searched_keyword SET completion_status=1 WHERE keyword_id = "+keywordID
+              cursor.execute(status_update_query)
+              con.commit()
+'''
 
 '''
 
