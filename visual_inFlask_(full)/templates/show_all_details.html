@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'head_section.html' %}
+
+    <script src="https://cdn.jsdelivr.npm/chart.js@2.9.4/dist/Chart.min.js/2.9.4/Chart.js"></script>
+
+    <!--Pop out modal-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!--
+font style for pop up modal   
+    font-family: 'Poppins', sans-serif;
+-->
+
+</head>
+
+<body>
+    <!-- Jump to the top button -->
+    <button onclick="topFunction()" id="myBtn" title="Go to top">Top</button>
+    {% include 'go_on_top_button.html' %}
+
+    <header>
+        {% include 'nav.html' %}
+    </header>
+    <section>
+        <div style="text-align: center; padding: 30px; width: 90%; height: 90; margin:20px 5% ; ">
+            <canvas id="keyword_graph" style="background-color: aliceblue;"></canvas>
+        </div>
+    </section>
+
+    <h1 style="text-align: center; color: #fff">Detailed Table</h1>
+    <section id="tname" style="height: auto; margin: 2% 10% 5%;">
+        <table class="table table-light">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Created At</th>
+                    <th scope="col">Repo Size</th>
+                    <th scope="col">Language</th>
+                    <th scope="col">Watchers</th>
+                    <th scope="col">Forks</th>
+                    <th scope="col">Commits </th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- here is the loop to get us all the data from database-->
+                {% for row in details %}
+                <tr>
+                    <td>{{row[1]}}</td>
+                    <td>{{row[3]}}</td>
+                    <td>{{row[6]}}</td>
+                    <td>{{row[13]}}</td>
+                    <td>{{row[14]}}</td>
+                    <td>{{row[15]}}</td>
+                    <td>{{row[16]}}</td>
+                    <td>{{row[18]}}</td>
+                    <td>{{row[17]}}</td>
+                    <td><a href="/tables/{{row[0]}}/{{row[1]}}" type="button" class="btn btn-primary" onclick="">Update
+                            Commits</a></td>
+                    <td><a href="/graph/{{row[1]}}" type="button" class="btn btn-primary" onclick="">Generate Graph</a>
+                    </td>
+
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    </section>
+    <div style="height: 200px;"></div>
+
+
+    {% block javascript %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var mydates = JSON.parse('{{dates | safe}}')
+        var mycounts = JSON.parse('{{counts | safe }}');
+        //var mycounts = JSON.parse('{{count | safe}}')
+        let my_commit_graph = new Chart(keyword_graph, {
+            type: "line",
+            data: {
+                labels: mydates,
+                datasets: [{
+                    label: "Commits :",
+                    data: mycounts,
+                    fill: false,
+                    borderColor: "rgb(75, 192, 192)",
+                    lineTension: .6,
+                    radius: 6
+                }]
+            },
+            options: {}
+        });
+    </script> ->
+    {%endblock%}
+</body>
+
+</html>

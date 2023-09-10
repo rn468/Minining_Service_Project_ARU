@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"
+        integrity="sha512-7U4rRB8aGAHGVad3u2jiC7GA5/1YhQcQjxKeaVms/bT66i3LVBMRcBI9KwABNWnxOSwulkuSXxZLGuyfvo7V1A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    {% include 'head_section.html' %}
+
+</head>
+
+<body>
+    <header>
+        {% include 'nav.html' %}
+    </header>
+    <section>
+        <div class="chart-container" style="width: 90%; height: 90; margin:20px 5% ;">
+            <!--top right botton left-->
+            <canvas id="commit_graph" style="background-color: aliceblue;"></canvas>
+        </div>
+    </section>
+
+    {% block javascript %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var mydates = JSON.parse('{{dates | safe}}')
+        var mycounts = JSON.parse('{{count | safe}}')
+        let my_commit_graph = new Chart(commit_graph, {
+            type: "line",
+            data: {
+                labels: mydates,
+                datasets: [{
+                    label: "Commits :",
+
+                    data: mycounts,
+                    fill: false,
+                    borderColor: "rgb(75, 192, 192)",
+                    lineTension: .6,
+                    radius: 6
+                }]
+            },
+            options: {}
+        });
+    </script> ->
+    {%endblock%}
+
+</body>
+
+</html>
+
+<!--
+                        lineTension: 0.1
+    <canvas id="lineChart" width="900" height="400"></canvas>
+
+    <script>
+
+        var ctx = document.getElementById("lineChart").getContext("2d");
+        var lineChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: {{ labels | safe }},
+                datasets:[
+                    {
+                        label: "Data Point",
+                        data: {{ values | safe }},
+                        fill: false,
+                        borderColor: "rgb(75,192,192)",
+                        lineTension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive:false
+            }
+        });
+    </script>
+-->

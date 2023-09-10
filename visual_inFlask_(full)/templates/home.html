@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'head_section.html' %}
+</head>
+
+<body>
+    <!-- Jump to the top button -->
+    <button onclick="topFunction()" id="myBtn" title="Go to top">Top</button>
+    {% include 'go_on_top_button.html' %}
+
+    <header>
+        {% include 'nav.html' %}
+    </header>
+    <main>
+        <br />
+        <br />
+        <br />
+
+        <div id=container>
+            <section id="hero" style="margin-top: 30px;">
+                <div id="welcomeContainer">
+                    <div style="margin-right: 45px;">
+                        <h1 style="text-align: left;">Welcome</h1>
+                        <br />
+                        <br />
+                        <p class="lead" style="text-align: left;">Welcome to <strong>Where's My Repo</strong>, your
+                            comprehensive data mining and
+                            analysis
+                            tool for
+                            open-source
+                            software projects.
+                            <strong>Where's My Repo</strong> is designed to provide you with invaluable insights into
+                            the
+                            world
+                            of open-source
+                            software development.</p>
+                        <br />
+                        <br />
+                        <p class="lead" style="text-align: left;">Our tool mines data from various open-source
+                            repositories, including
+                            <strong>GitHub</strong>, to offer
+                            aggregated
+                            views and interactive dashboards that showcase the latest trends and activities in the
+                            open-source
+                            community.</p>
+                    </div>
+                    <div style="display:inline-block;vertical-align:top;">
+                        <img src="../static/yancy-min-842ofHC6MaI-unsplash.jpg" alt="">
+                    </div>
+                </div>
+                <br />
+                <br />
+                <div id="welcomeContainer">
+                    <div>
+                        <img src="../static/tim-kabel-FCrYdP8gohg-unsplash.jpg" alt="">
+                    </div>
+                    <div style="text-align: left; margin-left: 45px;">
+                        <h1>Key Features</h3>
+                            <br />
+                            <br />
+                            <ul>
+                                <li class="lead"><strong>Real-time Data Mining :</strong> WMR fetches realtime data from
+                                    live public repositories,
+                                    ensuring you
+                                    have access to the latest information.</li>
+                                <br />
+                                <li class="lead"><strong>Modular Design :</strong> Our core engine is designed to be
+                                    flexible, allowing
+                                    seamless
+                                    integration of
+                                    new data sources and APIs.</li>
+                                <br />
+                                <li class="lead"><strong>Web-Based Visualization :</strong> Explore project metrics, top
+                                    contributors,
+                                    commits,and
+                                    more through our user-friendly web-based visualization tool.</li>
+                                <br />
+                                <li class="lead"><strong>Customization :</strong> Tailor WMR to your needs by adding new
+                                    keywords and
+                                    repositories
+                                </li>
+                            </ul>
+                    </div>
+                </div>
+            </section>
+            <!--/*Stats Section*/-->
+            <section id="tname">
+                <h1>Stats</h1>
+                <h3>Tables of all the keywords showing 25 in each table if possible collapse button</h3>
+                <!-- On tables -->
+                <table class="table table-light" style="width: 65%; ;">
+                    <thead>
+                        <tr>
+                            <th scope="col">Keyword ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Last Update</th>
+                            <!--    <th scope="col">Completion Status</th> -->
+                            <th scope="col">Total Repos</th>
+                            <th scope="col"> </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- here is the loop to get us all the data from database-->
+                        {% for row in data %}
+                        <tr>
+                            <td>{{row[0]}}</td>
+                            <td>{{row[1]}}</td>
+                            <td>{{row[2]}}</td>
+                            <!--    <td>{{row[3]}}</td>   -->
+                            <td>{{row[5]}}</td>
+                            <td><a href="/tables/{{row[0]}}" type="button" class="btn btn-primary" onclick="">Show
+                                    More</a></td>
+                        </tr>
+                        {%endfor%}
+                    </tbody>
+                </table>
+            </section>
+            <!--/*About Section*/-->
+            {% include 'about.html' %}
+
+    </main>
+</body>
+
+
+
+</html>
+
+
+<!--
+    Keyword Section */
+    <section id="tname">
+        <h1>Keyword</h1>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#keywordmodel">Add
+            Keyword</button>
+    </section>
+    
+            /*Graph Section*/
+            <section id="tname">
+                <h1>Graphs</h1>
+                <h3 class="lead">Collabpse Button and Display all graphs</h3>
+            </section>
+-->

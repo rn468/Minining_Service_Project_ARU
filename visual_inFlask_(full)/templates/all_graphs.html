@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"
+        integrity="sha512-7U4rRB8aGAHGVad3u2jiC7GA5/1YhQcQjxKeaVms/bT66i3LVBMRcBI9KwABNWnxOSwulkuSXxZLGuyfvo7V1A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    {% include 'head_section.html' %}
+
+</head>
+
+<body style="height: auto;">
+
+    <header>
+        {% include 'nav.html' %}
+    </header>
+    <main>
+        <br />
+        <br />
+        <br />
+
+        <div id=container>
+            <section>
+                <div style="margin: 50px 8%; ">
+                    <div class="chart-container" style="width: 40%; height: auto; float: left;">
+                        <canvas id="keyword_coverage" style="background-color: rgb(255, 255, 255);"></canvas>
+                    </div>
+                    <div class="chart-container" style="width: 40%; height: auto; float: right;">
+                        <canvas id="languages_coverage" style="background-color: rgb(255, 255, 255);"></canvas>
+                    </div>
+                </div>
+                <div style="margin: 50px 8%;">
+                    <div class="chart-container" style="width: 80%; height: auto;">
+                        <canvas id="Actual_VS_Available" style="background-color: rgb(255, 255, 255);"></canvas>
+                    </div>
+                </div>
+            </section>
+            <section>
+            </section>
+        </div>
+    </main>
+
+    {% block javascript %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var mydatata = JSON.parse('{{mydata | safe}}')
+        var mylable = JSON.parse('{{label | safe}}')
+        var myLang = JSON.parse('{{language | safe}}')
+        var myLCount = JSON.parse('{{lang_count | safe}}')
+        var myActualCount = JSON.parse('{{ac_count | safe}}')
+
+
+        let income_vs_expense_chart = new Chart(keyword_coverage, {
+            type: 'polarArea',
+            data: {
+                labels: mylable,
+                datasets: [{
+                    label: "Repositories",
+                    data: mydatata,
+                    backgroundColor: ['#003f5c', '#2f4b7c', '#665191', '#a05195', '#a05195', '#d45087',
+                        '#f95d6a', '#ff7c43', '#ffa600'
+                    ],
+
+                    borderWidth: 1,
+                    hoverBorderColor: "black",
+                    hoverBorderWidth: 2,
+                    hoverBackgroundColor: 'rgba(154, 245, 140)',
+                    pointHoverRadius: 5
+                }],
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Repositories Per Keyword',
+                        color: 'navy',
+                        position: 'bottom',
+                        align: 'center',
+                        font: {
+                            weight: 'bold'
+                        },
+                        padding: 8,
+                        fullSize: true,
+                    }
+                },
+                legend: {
+                    position: "right",
+                    labels: {
+                        fontColor: "gray"
+                    },
+                    display: true,
+                },
+
+                elements: {
+                    hitRadius: 4,
+                }
+            }
+        })
+
+
+        let language_count_graph = new Chart(languages_coverage, {
+            type: 'pie',
+            data: {
+                labels: myLang,
+                datasets: [{
+                    label: "Repositories",
+                    data: myLCount,
+                    backgroundColor: ['#00876c', '#439981', '#6aaa96', '#8cbcac', '#aecdc2', '#cfdfd9',
+                        '#f1f1f1', '#f1d4d4', '#f0b8b8', '#ec9c9d', '#e67f83', '#de6069', '#d43d51',
+                        '#003f5c', '#2f4b7c', '#665191', '#a05195', '#a05195', '#d45087',
+                        '#f95d6a', '#ff7c43', '#ffa600'
+                    ],
+                    borderWidth: 1,
+                    hoverBorderColor: "black",
+                    hoverBorderWidth: 2,
+                    hoverBackgroundColor: 'rgba(154, 245, 140)',
+                    pointHoverRadius: 5
+                }],
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Languages Used Accross Repositories',
+                        color: 'navy',
+                        position: 'bottom',
+                        align: 'center',
+                        font: {
+                            weight: 'bold'
+                        },
+                        padding: 8,
+                        fullSize: true,
+                    }
+                },
+                legend: {
+                    position: "right",
+                    labels: {
+                        fontColor: "gray"
+                    },
+                    display: true,
+                },
+
+                elements: {
+                    hitRadius: 4,
+                }
+            }
+        })
+
+        let Actual_Available_graph = new Chart(Actual_VS_Available, {
+            type: 'radar',
+            data: {
+                labels: mylable,
+                datasets: [{
+                    label: 'Available Data',
+                    data: mydatata,
+                    fill: true,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    pointBackgroundColor: 'rgb(255, 99, 132)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(255, 99, 132)'
+                }, {
+                    label: 'Actual Data in DB',
+                    data: myActualCount,
+                    fill: true,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    pointBackgroundColor: 'rgb(54, 162, 235)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(54, 162, 235)'
+                }],
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Available VS Actual Data Comparison',
+                        color: 'navy',
+                        position: 'bottom',
+                        align: 'center',
+                        font: {
+                            weight: 'bold'
+                        },
+                        padding: 8,
+                        fullSize: true,
+                    }
+                },
+
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                }
+            }
+        })
+    </script>
+    {%endblock%}
+    <!--
+        -----------------------
+    <div>
+        <canvas id="myChartHere" style="height: auto; max-width: 70%; background-color: #fff;"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('myChartHere');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [12, 19, 3, 5, 2, 3],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script> -->
+</body>
+
+</html>

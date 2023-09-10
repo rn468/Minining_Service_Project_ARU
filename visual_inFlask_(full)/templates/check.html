@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link 
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
+        integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" 
+        crossorigin="anonymous" 
+        referrerpolicy="no-referrer" 
+    />
+    <link 
+        rel="stylesheet" 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" 
+        integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu"         
+        crossorigin="anonymous"
+    />
+
+    <link rel="stylesheet" href="" />
+    <title>{{company_name}}</title>
+    <script defer src="../js/header.js"></script>
+    <style>
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Open Sans', sans-serif;
+      }
+      
+      body {
+          height: auto;
+          background-color: #383838;
+          background-size: cover;
+          background-position: center;
+      }
+      
+      li {
+          list-style: none;
+      }
+      
+      a {
+          text-decoration: none;
+          color: #fff;
+          font-size: 1rem;
+      }
+      
+      a:hover{
+          color: orange;
+      }
+      
+      /* HEADER */
+      
+      header{
+          position: relative;
+          padding: 0 1rem;
+      }
+      
+      .navbar {
+          width: 100%;
+          height: 60px;
+          max-width: 100%;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          backdrop-filter: blur(7px);
+          justify-content: space-between;
+      }
+      
+      .navbar .logo a {
+          font-size: 1.5rem ;
+          font-weight: bold;
+          justify-content: center;
+      }
+      
+      .navbar .logo a img{
+          width: 2.5rem;
+          border-radius: 20px;
+          height: auto;
+          justify-content: center;
+          margin-right: 1rem;
+      }
+      
+      .navbar .links {
+          display: flex;
+          gap: 2rem;
+      }
+      
+      .navbar .toggle_btn {
+          color: #fff;
+          font-size: 1.5rem;
+          cursor: pointer;
+          display: none;
+      }
+      
+      .action_btn {
+          background-color: orange;
+          color: #fff;
+          padding: 0.5rem 1rem;
+          border: none;
+          outline: none;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: bold;
+          cursor: pointer;
+      }
+      
+      .action_btn:hover {
+          scale: 1.05;
+          color: #fff;
+      }
+      
+      .action_btn:active {
+          scale: 0.95;
+      }
+      
+      /* DROPDOWN MENU */
+      .dropdown_menu {
+          display: none;
+          position: absolute;
+          right: 2px;
+          top: 60px;
+          height: 0;
+          width: 300px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          border-radius: 10px;
+          overflow: hidden;
+          transition: height 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) ;
+      }
+      
+      .dropdown_menu.open {
+          height: auto;
+      }
+      
+      .dropdown_menu li{
+          padding: 0.7rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+      
+      .dropdown_menu .action_btn{
+          width: 100%;
+          display: flex;
+          justify-content: center;
+      }
+      /* Tname */
+
+      section#tname{
+          height: calc(100vh - 60px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          color: #fff;
+      }
+      
+      h1#tname{
+          font-size: 3rem;
+          margin-bottom: 1rem;
+      }
+      
+      /* Hero */
+      section#hero{
+          height: calc(100vh - 60px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          color: #fff;
+      }
+      
+      #hero h1{
+          font-size: 3rem;
+          margin-bottom: 1rem;
+      }
+      
+      /* RESPONSIVE DESIGN */
+      @media (max-width: 992px){
+          .navbar .links,
+          .navbar .action_btn {
+              display: none;
+          }
+      
+          
+          .navbar .toggle_btn {
+              display: block;
+          }
+          
+          .dropdown_menu{
+              display: block;
+          }
+      }
+      
+      @media (max-width: 576px){
+          .dropdown_menu {
+              left: 2rem;
+              width: unset;
+          }
+      }
+
+      #container {
+        max-width: 720px;
+        margin: 0 auto 0 auto;
+      }
+    </style>
+</head>
+<body>
+    <!--
+  <img src = https://wheresmyrepo--ridhamkumarnaik.repl.co/static/library.jpg height=auto width=100%>
+  -->
+    <header>
+        {% include 'nav.html' %}
+    </header>
+    <main>
+      <div id=container>
+<!--/*Graph Section*/-->
+        <section id="tname">
+            <h1 >Graphs</h1>
+            <h3 class="lead">Collabpse Button and Display all graphs</h3>
+        </section>
+<!--/*Stats Section*/-->
+        <section id="tname">
+            <h1>Stats</h1>
+            <h3>Tables of all the keywords showing 25 in each table if possible collapse button</h3>
+            <!-- On tables -->
+            <table class="table table-light table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Created At</th>
+                        <th scope="col">Repo Size</th>
+                        <th scope="col">Language</th>
+                        <th scope="col">Watchers</th>
+                        <th scope="col">Forks</th>
+                        <th scope="col">Commits </th>
+                        <th scope="col">K</th>
+                    </tr>                                 
+                </thead>
+                <tbody>
+                <!-- here is the loop to get us all the data from database-->
+                {% for row in details %}
+                    <tr>
+                        <td>{{row[1]}}</td>
+                        <td>{{row[3]}}</td>
+                        <td>{{row[6]}}</td>
+                        <td>{{row[13]}}</td>
+                        <td>{{row[14]}}</td>
+                        <td>{{row[15]}}</td>
+                        <td>{{row[16]}}</td>
+                        <td>{{row[18]}}</td>
+                        <td>{{row[17]}}</td>
+                        <td><a href="https://google.com" type="button" class="btn btn-primary" onclick="">Show More</a></td>
+                    </tr>
+                {%endfor%}
+                </tbody>
+            </table>  
+    </section>
+<!--/*About Section*/-->
+        {% include 'about.html' %}
+
+</body>
+
+
+
+</html>
